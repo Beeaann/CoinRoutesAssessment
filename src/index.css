@@ -468,22 +468,8 @@ body {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
   overflow: hidden;
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-/* Custom scrollbar for the ladder — keeps it looking clean */
-.ladder__table-wrapper::-webkit-scrollbar {
-  width: 6px;
-}
-
-.ladder__table-wrapper::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
-.ladder__table-wrapper::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
+  /* Fixed height to exactly fit 31 compact rows to prevent any panel layout shifts. No internal scrollbar! */
+  height: 680px; 
 }
 
 .ladder__table {
@@ -491,6 +477,7 @@ body {
   border-collapse: collapse;
   font-size: 12px;
   font-family: var(--font-mono);
+  table-layout: fixed; /* Freezes column widths so they don't jump when decimals change */
 }
 
 .ladder__table thead th {
@@ -515,6 +502,7 @@ body {
 
 .ladder__row td {
   padding: 4px 10px;
+  height: 21px; /* Freeze row height so missing content doesn't shrink the table */
   text-align: right;
   border-bottom: 1px solid rgba(42, 53, 72, 0.3);
   transition: background 0.1s;
@@ -557,8 +545,10 @@ body {
 
 .volume-bar {
   height: 100%;
+  width: 100%;
   border-radius: 2px;
-  transition: width 0.2s ease-out;
+  transform-origin: right center;
+  transition: transform 0.15s ease-out;
 }
 
 .volume-bar--bid {

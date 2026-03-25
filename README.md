@@ -51,7 +51,7 @@ You will need [Node.js](https://nodejs.org/) installed on your machine (v18+ rec
 
 This application implements several core optimizations to handle real-time crypto volatility:
 
-1. **O(1) State Management:** The Redux store maintains bids and asks as hash maps keyed by price strings. This allows the application to apply fast-moving WebSocket diffs in `O(1)` time without re-sorting an array on every tick.
-2. **Throttled Batching:** WebSocket payloads are held in a `Map` (which automatically deduplicates redundant price updates) and flushed to Redux via a single 250ms throttle timer.
-3. **Private Selector Caching:** The UI components utilize Redux Toolkit selector factories (`makeSelectSortedBids`). This ensures that if the user views multiple currencies at once, each panel gets its own memoization cache, preventing constant cache invalidation and expensive `O(n log n)` recalculations.
-4. **Targeted Re-renders:** Heavy visual elements, like the rows in the order book ladder, are deeply wrapped in `React.memo` to ensure they only repaint when volume at their specific price level changes.
+1. **Web Worker Offloading:** All WebSocket management, JSON parsing, array transformations, and Map-based throttling are natively isolated inside a dedicated Web Worker (`orderBook.worker.js`). By shifting this heavy data-crunching pipeline to a background thread, the browser's main thread is fully liberated to maintain a buttery 120FPS UI.
+2. **O(1) State Management:** The Redux store maintains bids and asks as raw hash maps keyed by price strings. This allows the application to apply fast-moving WebSocket diffs in `O(1)` time without re-sorting an array on every tick.
+3. **O(N) Aggregation Bucketing:** Instead of sorting 5,000-element arrays every time the Redux store updates, the application feeds the raw hash maps directly into a bucketing algorithm that reduces thousands of price levels into ~200 visual buckets in linear time (`O(N)`). Only the resulting handful of buckets are then sorted, eliminating `O(N log N)` bottlenecking.
+4. **Hardware-Accelerated CSS:** Heavy visual elements, like the rapidly resizing volume bars in the ladder, utilize compositing-layer transforms (`transform: scaleX()`) rather than layout-triggering dimension changes (`width`). This completely eliminates layout thrashing.

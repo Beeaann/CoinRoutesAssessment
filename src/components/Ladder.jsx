@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { makeSelectSortedBids, makeSelectSortedAsks } from '../store/orderBookSlice.js';
-import { aggregateEntries } from '../utils/aggregation.js';
+import { aggregateBook } from '../utils/aggregation.js';
 
 const AGGREGATION_OPTIONS = [0.01, 0.05, 0.10, 0.50, 1.00, 5.00];
 const VISIBLE_ROWS = 15;
+const EMPTY_OBJ = {};
 
 /**
  * A single row in the ladder.
@@ -23,7 +23,7 @@ const LadderRow = React.memo(function LadderRow({ price, qty, maxQty, side }) {
         <div className="volume-bar-container">
           <div
             className={`volume-bar ${barClass}`}
-            style={{ width: `${barWidth}%` }}
+            style={{ transform: `scaleX(${barWidth / 100})` }}
           />
         </div>
       </td>
@@ -37,26 +37,22 @@ const LadderRow = React.memo(function LadderRow({ price, qty, maxQty, side }) {
 const Ladder = React.memo(function Ladder({ productId }) {
   const [increment, setIncrement] = useState(0.01);
 
-  // Create stable selector instances for this specific Ladder component
-  const selectBids = useMemo(() => makeSelectSortedBids(), []);
-  const selectAsks = useMemo(() => makeSelectSortedAsks(), []);
-
-  const rawBids = useSelector((state) => selectBids(state, productId));
-  const rawAsks = useSelector((state) => selectAsks(state, productId));
+  // Pull the raw unordered hash maps directly from Redux.
+  // Empty object fallback prevents undefined errors on first render.
+  const rawBids = useSelector((state) => state.orderBook[productId]?.bids || EMPTY_OBJ);
+  const rawAsks = useSelector((state) => state.orderBook[productId]?.asks || EMPTY_OBJ);
 
   // Aggregate bids and asks based on the selected increment.
   // We memoize this so we only re-aggregate when data or increment changes.
   const aggregatedBids = useMemo(() => {
-    const entries = rawBids.map(([p, q]) => [String(p), String(q)]);
-    const agg = aggregateEntries(entries, increment);
-    // aggregateEntries returns ascending — bids need to be highest first
+    const agg = aggregateBook(rawBids, increment);
+    // aggregateBook returns ascending — bids need to be highest first
     agg.reverse();
     return agg.slice(0, VISIBLE_ROWS);
   }, [rawBids, increment]);
 
   const aggregatedAsks = useMemo(() => {
-    const entries = rawAsks.map(([p, q]) => [String(p), String(q)]);
-    const agg = aggregateEntries(entries, increment);
+    const agg = aggregateBook(rawAsks, increment);
     // Asks are already ascending (lowest first), take the closest to spread
     return agg.slice(0, VISIBLE_ROWS);
   }, [rawAsks, increment]);
