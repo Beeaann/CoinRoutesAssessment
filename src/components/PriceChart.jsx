@@ -45,6 +45,16 @@ const PriceChart = React.memo(function PriceChart({ productId }) {
     countRef.current += 1;
 
     setDataPoints((prev) => {
+      // Recharts requires at least two points to draw a line. 
+      // If this is the very first data point, duplicate it to instantly draw a flat line.
+      if (prev.length === 0) {
+        countRef.current += 1;
+        return [
+          { idx: countRef.current - 1, bid: bidPrice, ask: askPrice },
+          { idx: countRef.current, bid: bidPrice, ask: askPrice },
+        ];
+      }
+
       const next = [
         ...prev,
         {

@@ -60,37 +60,6 @@ export default orderBookSlice.reducer;
 // --- Selectors ---
 
 /**
- * Creates a dedicated memoized selector for sorted bids (highest first).
- * Call this once per component instance to avoid sharing cache.
- */
-export const makeSelectSortedBids = () =>
-  createSelector(
-    [(state, productId) => state.orderBook[productId]],
-    (book) => {
-      if (!book) return [];
-      // Only convert and sort what we actually have — the sort itself
-      // is unavoidable but at least each component has its own cache
-      return Object.entries(book.bids)
-        .map(([p, q]) => [parseFloat(p), parseFloat(q)])
-        .sort((a, b) => b[0] - a[0]);
-    }
-  );
-
-/**
- * Creates a dedicated memoized selector for sorted asks (lowest first).
- */
-export const makeSelectSortedAsks = () =>
-  createSelector(
-    [(state, productId) => state.orderBook[productId]],
-    (book) => {
-      if (!book) return [];
-      return Object.entries(book.asks)
-        .map(([p, q]) => [parseFloat(p), parseFloat(q)])
-        .sort((a, b) => a[0] - b[0]);
-    }
-  );
-
-/**
  * Does a quick scan for the best price on each side.
  * Way faster than sorting the entire book just to grab two prices.
  */
