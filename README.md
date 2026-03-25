@@ -2,6 +2,9 @@
 
 A real-time cryptocurrency order book web application built with React, Redux Toolkit, and Vite. This application connects to the live Coinbase Advanced Trade WebSocket API to stream, reconstruct, and render high-frequency market data in a professional trading terminal interface.
 
+## Live Vercel Demo
+https://coin-routes-assessment.vercel.app/
+
 ## Features
 
 - **Live WebSocket Data:** Connects directly to `wss://advanced-trade-ws.coinbase.com` for real-time Level 2 order book updates.
